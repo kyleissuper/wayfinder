@@ -1,10 +1,21 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: "jsdom",
+  testEnvironment: 'jsdom',
   transform: {
-    "^.+\\.(ts|tsx)$": "ts-jest",
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      tsconfig: 'tsconfig.json',
+    }],
   },
-  setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.json',
+      babelConfig: true,
+    },
+  },
 };

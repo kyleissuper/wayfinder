@@ -32,14 +32,24 @@ export function findShortestPath(graph: Graph, start: Location, end: Location): 
     const current = pq.dequeue()!;
     if (current === end.id) break;
 
-    const neighbors = getNeighbors(graph, current);
-    for (const neighbor of neighbors) {
-      const distance = distances.get(current)! + calculateDistance(graph.nodes.get(current)!.position, neighbor.position);
-      if (distance < distances.get(neighbor.id)!) {
-        distances.set(neighbor.id, distance);
-        previousNodes.set(neighbor.id, current);
-        pq.enqueue(neighbor.id, distance);
+    try {
+      const neighbors = getNeighbors(graph, current);
+      for (const neighbor of neighbors) {
+        const edge = graph.edges.find(e => (e.from === current && e.to === neighbor.id) || (e.to === current && e.from === neighbor.id));
+        const currentNode = graph.nodes.get(current);
+        if (!currentNode) {
+          throw new Error(`Node with id ${current} not found in graph`);
+        }
+        const distance = distances.get(current)! + (edge ? edge.weight : calculateDistance(currentNode.position, neighbor.position));
+        if (distance < distances.get(neighbor.id)!) {
+          distances.set(neighbor.id, distance);
+          previousNodes.set(neighbor.id, current);
+          pq.enqueue(neighbor.id, distance);
+        }
       }
+    } catch (error) {
+      console.error(`Error processing node ${current}:`, error);
+      continue;
     }
   }
 
@@ -47,13 +57,14 @@ export function findShortestPath(graph: Graph, start: Location, end: Location): 
 }
 
 function reconstructPath(graph: Graph, start: Location, end: Location, previousNodes: Map<string, string>, totalDistance: number): Path {
-  const path: Location[] = [end];
+  const path: Location[] = [];
   let current = end.id;
 
-  while (current !== start.id) {
-    current = previousNodes.get(current)!;
+  while (current !== undefined && current !== start.id) {
     path.unshift(graph.nodes.get(current)!);
+    current = previousNodes.get(current)!;
   }
+  path.unshift(start);
 
   return { locations: path, totalDistance };
 }

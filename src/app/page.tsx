@@ -1,101 +1,135 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+import { Graph, LocationWithConditionalName, LocationType, Edge, Path } from '../types';
+import { createGraph } from '../utils/graph';
+import { findShortestPath } from '../utils/pathfinding';
+import { generateDirections } from '../utils/directions';
+import PathVisualizer from '../components/PathVisualizer';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [directions, setDirections] = useState<string[]>([]);
+  const [locations, setLocations] = useState<LocationWithConditionalName[]>([]);
+  const [path, setPath] = useState<Path | null>(null);
+  const [currentFloor, setCurrentFloor] = useState<number>(0);
+  const [floors, setFloors] = useState<number[]>([]);
+  const [graph, setGraph] = useState<Graph | null>(null);
+  const [startLocation, setStartLocation] = useState<string>('');
+  const [endLocation, setEndLocation] = useState<string>('');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  useEffect(() => {
+    // Create a sample graph
+    const locations: LocationWithConditionalName[] = [
+      { id: 'parking-1', name: 'Surface Parking (L1)', type: LocationType.Other, position: { x: 48, y: 6, floor: 1 }},
+      { id: 'wp-1', type: LocationType.WayPoint, position: { x: 42, y: 15, floor: 1 }},
+      { id: 'escalator-1', name: 'Escalator (L1)', type: LocationType.Escalator, position: { x: 55.5, y: 29, floor: 1 }},
+      { id: 'escalator-2', name: 'Escalator (L5)', type: LocationType.Escalator, position: { x: 55.5, y: 29, floor: 5 }},
+      { id: 'wp-2', type: LocationType.WayPoint, position: { x: 52, y: 27, floor: 5 }},
+      { id: 'wp-3', type: LocationType.WayPoint, position: { x: 54, y: 22.5, floor: 5 }},
+      { id: 'wp-6', type: LocationType.WayPoint, position: { x: 54, y: 18.5, floor: 5 }},
+      { id: 'wp-4', type: LocationType.WayPoint, position: { x: 36, y: 18.5, floor: 5 }},
+      { id: 'wp-5', type: LocationType.WayPoint, position: { x: 32.4, y: 17, floor: 5 }},
+      { id: 'terrace', name: 'Red Rock Terrace (L5)', type: LocationType.Other, position: { x: 27, y: 17.5, floor: 5 }},
+    ];
+
+    const edges: Edge[] = [
+      { from: 'parking-1', to: 'wp-1', weight: 5 },
+      { from: 'wp-1', to: 'escalator-1', weight: 10 },
+      { from: 'escalator-1', to: 'escalator-2', weight: 1 },
+      { from: 'escalator-2', to: 'wp-2', weight: 1 },
+      { from: 'wp-2', to: 'wp-3', weight: 1 },
+      { from: 'wp-3', to: 'wp-6', weight: 1 },
+      { from: 'wp-6', to: 'wp-4', weight: 1 },
+      { from: 'wp-4', to: 'wp-5', weight: 1 },
+      { from: 'wp-5', to: 'terrace', weight: 1 },
+    ];
+
+    const graph: Graph = createGraph(locations, edges);
+
+    // Get unique floors
+    const uniqueFloors = Array.from(new Set(locations.map(l => l.position.floor))).sort();
+
+    setLocations(locations);
+    setGraph(graph);
+    setFloors(uniqueFloors);
+    setCurrentFloor(uniqueFloors[0]);
+  }, []);
+
+  useEffect(() => {
+    if (graph && startLocation && endLocation) {
+      const start = graph.nodes.get(startLocation)!;
+      const end = graph.nodes.get(endLocation)!;
+      const pathResult = findShortestPath(graph, start, end);
+
+      // Generate directions
+      const directionsResult = generateDirections(pathResult.locations);
+      const directionsText = directionsResult.map(d => d.instruction);
+
+      console.log(pathResult);
+      setPath(pathResult);
+      setDirections(directionsText);
+    }
+  }, [graph, startLocation, endLocation]);
+
+  const handleStartLocationChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStartLocationId = event.target.value;
+    setStartLocation(newStartLocationId);
+    const newStartLocation = locations.find(loc => loc.id === newStartLocationId);
+    if (newStartLocation) {
+      setCurrentFloor(newStartLocation.position.floor);
+    }
+  };
+
+  const handleEndLocationChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setEndLocation(event.target.value);
+  };
+
+  const handleFloorChange = useCallback((floor: number) => {
+    setCurrentFloor(floor);
+  }, []);
+
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Pathfinding Directions</h1>
+      <div className="mb-4">
+        <label className="mr-2">Start Location:</label>
+        <select value={startLocation} onChange={handleStartLocationChange} className="mr-4 p-2 border rounded">
+          <option value="">Select start location</option>
+          {locations.filter(location => location.type !== LocationType.WayPoint).map(location => (
+            <option key={location.id} value={location.id}>{location.name}</option>
+          ))}
+        </select>
+        <label className="mr-2">End Location:</label>
+        <select value={endLocation} onChange={handleEndLocationChange} className="p-2 border rounded">
+          <option value="">Select end location</option>
+          {locations.filter(location => location.type !== LocationType.WayPoint).map(location => (
+            <option key={location.id} value={location.id}>{location.name}</option>
+          ))}
+        </select>
+      </div>
+      {startLocation && endLocation && (
+        <>
+          <div className="mb-4">
+            <label className="mr-2">Floor:</label>
+            {floors.map(floor => (
+              <button
+                key={floor}
+                onClick={() => handleFloorChange(floor)}
+                className={`mr-2 px-2 py-1 rounded ${currentFloor === floor ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+              >
+                {floor}
+              </button>
+            ))}
+          </div>
+          {path && (
+            <PathVisualizer 
+              locations={locations} 
+              path={path} 
+              currentFloor={currentFloor}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          )}
+        </>
+      )}
     </div>
   );
 }

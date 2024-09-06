@@ -6,23 +6,10 @@ export function generateDirections(path: Location[]): Direction[] {
   for (let i = 0; i < path.length - 1; i++) {
     const from = path[i];
     const to = path[i + 1];
-    const instruction = getInstruction(from, to);
-    directions.push({ from, to, instruction });
+    directions.push({ from, to });
   }
 
   return directions;
-}
-
-function getInstruction(from: Location, to: Location): string {
-  if (from.position.floor !== to.position.floor) {
-    return getFloorChangeInstruction(from, to);
-  }
-
-  const dx = to.position.x - from.position.x;
-  const dy = to.position.y - from.position.y;
-  const direction = getDirection(dx, dy);
-
-  return `Go ${direction} towards ${to.name}`;
 }
 
 function getFloorChangeInstruction(from: Location, to: Location): string {

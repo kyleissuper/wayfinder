@@ -6,10 +6,18 @@ export interface Point {
 
 export interface Location {
   id: string;
-  name: string;
+  name?: string;
   type: LocationType;
   position: Point;
 }
+
+export type NamedLocation = Location & {
+  name: string;
+}
+
+export type LocationWithConditionalName = 
+  | (Omit<Location, 'type'> & { type: LocationType.WayPoint })
+  | (Omit<Location, 'type' | 'name'> & { type: Exclude<LocationType, LocationType.WayPoint>, name: string });
 
 export enum LocationType {
   Game = 'game',
@@ -18,6 +26,7 @@ export enum LocationType {
   Elevator = 'elevator',
   Escalator = 'escalator',
   Other = 'other',
+  WayPoint = 'waypoint'
 }
 
 export interface Edge {
@@ -39,5 +48,4 @@ export interface Path {
 export interface Direction {
   from: Location;
   to: Location;
-  instruction: string;
 }

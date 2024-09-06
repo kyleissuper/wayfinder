@@ -20,7 +20,8 @@
 .DS_Store
 *.pem
 .aider*
-*swp
+*.swp
+*.png
 
 # debug
 npm-debug.log*

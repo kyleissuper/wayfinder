@@ -19,7 +19,11 @@ export function getNeighbors(graph: Graph, locationId: string): Location[] {
     .filter(edge => edge.from === locationId || edge.to === locationId)
     .map(edge => {
       const neighborId = edge.from === locationId ? edge.to : edge.from;
-      return graph.nodes.get(neighborId)!;
+      const neighbor = graph.nodes.get(neighborId);
+      if (!neighbor) {
+        throw new Error(`Neighbor with id ${neighborId} not found in graph`);
+      }
+      return neighbor;
     });
 }
 
