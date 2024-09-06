@@ -4,11 +4,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { Graph, LocationWithConditionalName, LocationType, Edge, Path } from '../types';
 import { createGraph } from '../utils/graph';
 import { findShortestPath } from '../utils/pathfinding';
-import { generateDirections } from '../utils/directions';
 import PathVisualizer from '../components/PathVisualizer';
 
 export default function Home() {
-  const [directions, setDirections] = useState<string[]>([]);
   const [locations, setLocations] = useState<LocationWithConditionalName[]>([]);
   const [path, setPath] = useState<Path | null>(null);
   const [currentFloor, setCurrentFloor] = useState<number>(0);
@@ -61,13 +59,7 @@ export default function Home() {
       const end = graph.nodes.get(endLocation)!;
       const pathResult = findShortestPath(graph, start, end);
 
-      // Generate directions
-      const directionsResult = generateDirections(pathResult.locations);
-      const directionsText = directionsResult.map(d => d.instruction);
-
-      console.log(pathResult);
       setPath(pathResult);
-      setDirections(directionsText);
     }
   }, [graph, startLocation, endLocation]);
 

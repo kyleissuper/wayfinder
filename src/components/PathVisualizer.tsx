@@ -39,7 +39,7 @@ const PathVisualizer: React.FC<PathVisualizerProps> = ({ locations, path, curren
                 width="100"
                 height="40"
               >
-                <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontSize: '14px', wordWrap: 'break-word' }}>
+                <div style={{ fontSize: '14px', wordWrap: 'break-word' }}>
                   {location.name}
                 </div>
               </foreignObject>
