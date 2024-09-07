@@ -35,7 +35,8 @@
     "__tests__/*.ts",
     "__tests__/*.tsx",
     "__tests__/**/*.ts",
-    "__tests__/**/*.tsx"
+    "__tests__/**/*.tsx",
+    "src/**/*.json"
   ],
   "exclude": [
     "node_modules"

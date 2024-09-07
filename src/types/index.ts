@@ -9,6 +9,7 @@ export interface Location {
   name?: string;
   type: LocationType;
   position: Point;
+  hidden?: boolean;
 }
 
 export type NamedLocation = Location & {

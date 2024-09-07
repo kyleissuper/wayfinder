@@ -1,58 +1,27 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Location, Path, LocationType } from '../types';
+import { LocationWithConditionalName, Path, LocationType } from '../types';
+import BaseVisualizer, { SVG_WIDTH, SVG_HEIGHT } from './BaseVisualizer';
 
 interface PathVisualizerProps {
-  locations: Location[];
+  locations: LocationWithConditionalName[];
   path: Path;
   currentFloor: number;
 }
 
 const PathVisualizer: React.FC<PathVisualizerProps> = ({ locations, path, currentFloor }) => {
-  const canvasWidth = 675;
-  const canvasHeight = 500;
-
   const pathPoints = path.locations
     .filter(loc => loc.position.floor === currentFloor)
     .map(loc => ({ x: loc.position.x * 10, y: loc.position.y * 10 }));
 
   return (
-    <svg width={canvasWidth} height={canvasHeight}>
-      <image
-        href={currentFloor === 1 ? '/images/ground floor.svg' : '/images/fifth floor.svg'}
-        width={canvasWidth}
-        height={canvasHeight}
-      />
-      {locations.map(location => {
-        if (location.position.floor === currentFloor && location.type !== LocationType.WayPoint) {
-          return (
-            <g key={location.id}>
-              <circle
-                cx={location.position.x * 10}
-                cy={location.position.y * 10}
-                r="5"
-                fill="blue"
-              />
-              <foreignObject
-                x={location.position.x * 10 + 10}
-                y={location.position.y * 10 - 10}
-                width="100"
-                height="40"
-              >
-                <div style={{ fontSize: '14px', wordWrap: 'break-word' }}>
-                  {location.name}
-                </div>
-              </foreignObject>
-            </g>
-          );
-        }
-        return null;
-      })}
+    <BaseVisualizer currentFloor={currentFloor}>
       <motion.path
         d={`M ${pathPoints.map(p => `${p.x},${p.y}`).join(' L ')}`}
         fill="none"
-        stroke="red"
-        strokeWidth="3"
+        stroke="var(--stn-red)"
+        strokeWidth="5"
+        strokeDasharray="10,5"
         strokeLinecap="round"
         strokeLinejoin="round"
         initial={{ pathLength: 0, pathOffset: 0 }}
@@ -67,7 +36,32 @@ const PathVisualizer: React.FC<PathVisualizerProps> = ({ locations, path, curren
           repeat: Infinity 
         }}
       />
-    </svg>
+      {locations.map(location => {
+        if (location.position.floor === currentFloor && location.type !== LocationType.WayPoint && path.locations.some(pathLoc => pathLoc.id === location.id)) {
+          return (
+            <g key={location.id}>
+              <circle
+                cx={location.position.x * 10}
+                cy={location.position.y * 10}
+                r="5"
+                fill="blue"
+              />
+              <foreignObject
+                x={location.position.x * 10 - 100}
+                y={location.position.y * 10 + 10}
+                width="200"
+                height="100"
+              >
+                <div className="text-2xl md:text-sm font-semibold break-words text-center">
+                  {location.name}
+                </div>
+              </foreignObject>
+            </g>
+          );
+        }
+        return null;
+      })}
+    </BaseVisualizer>
   );
 };
 
