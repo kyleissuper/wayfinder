@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, KeyboardEvent } from 'react'
 import { Card } from "./ui/card"
-import { MapPin } from "lucide-react"
+import { MapPin, X } from "lucide-react"
 
 interface Location {
   id: string
@@ -123,18 +123,32 @@ export default function LocationSelector({
       <div className="flex items-center space-x-2">
         <MapPin className="text-red-500 flex-shrink-0" size={24} />
         <div className="w-full relative" ref={startInputRef}>
-          <input
-            type="text"
-            placeholder="Search start location..."
-            value={startSearchTerm}
-            onChange={(e) => {
-              setStartSearchTerm(e.target.value)
-              setShowStartSuggestions(true)
-            }}
-            onFocus={() => setShowStartSuggestions(true)}
-            onKeyDown={handleStartKeyDown}
-            className="w-full p-2 border rounded"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search start location..."
+              value={startSearchTerm}
+              onChange={(e) => {
+                setStartSearchTerm(e.target.value)
+                setShowStartSuggestions(true)
+              }}
+              onFocus={() => setShowStartSuggestions(true)}
+              onKeyDown={handleStartKeyDown}
+              className="w-full p-2 pr-8 border rounded"
+            />
+            {startSearchTerm && (
+              <button
+                onClick={() => {
+                  setStartSearchTerm('')
+                  setShowStartSuggestions(false)
+                  onStartLocationChange('')
+                }}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
           {showStartSuggestions && filteredStartLocations.length > 0 && (
             <ul className="absolute z-10 w-full bg-white border rounded mt-1 max-h-60 overflow-auto">
               {filteredStartLocations.map((location, index) => (
@@ -153,18 +167,32 @@ export default function LocationSelector({
       <div className="flex items-center space-x-2">
         <MapPin className="text-green-500 flex-shrink-0" size={24} />
         <div className="w-full relative" ref={endInputRef}>
-          <input
-            type="text"
-            placeholder="Search end location..."
-            value={endSearchTerm}
-            onChange={(e) => {
-              setEndSearchTerm(e.target.value)
-              setShowEndSuggestions(true)
-            }}
-            onFocus={() => setShowEndSuggestions(true)}
-            onKeyDown={handleEndKeyDown}
-            className="w-full p-2 border rounded"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search end location..."
+              value={endSearchTerm}
+              onChange={(e) => {
+                setEndSearchTerm(e.target.value)
+                setShowEndSuggestions(true)
+              }}
+              onFocus={() => setShowEndSuggestions(true)}
+              onKeyDown={handleEndKeyDown}
+              className="w-full p-2 pr-8 border rounded"
+            />
+            {endSearchTerm && (
+              <button
+                onClick={() => {
+                  setEndSearchTerm('')
+                  setShowEndSuggestions(false)
+                  onEndLocationChange('')
+                }}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
           {showEndSuggestions && filteredEndLocations.length > 0 && (
             <ul className="absolute z-10 w-full bg-white border rounded mt-1 max-h-60 overflow-auto">
               {filteredEndLocations.map((location, index) => (
