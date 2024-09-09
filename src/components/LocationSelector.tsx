@@ -36,6 +36,7 @@ export default function LocationSelector({
     setFilteredStartLocations(
       locations.filter(location =>
         location.name.toLowerCase().includes(startSearchTerm.toLowerCase())
+        && location.name !== 'Escalator'
       )
     )
     setStartSelectedIndex(0)
@@ -45,6 +46,7 @@ export default function LocationSelector({
     setFilteredEndLocations(
       locations.filter(location =>
         location.name.toLowerCase().includes(endSearchTerm.toLowerCase())
+        && location.name !== 'Escalator'
       )
     )
     setEndSelectedIndex(0)
